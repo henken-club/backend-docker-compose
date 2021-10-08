@@ -1,0 +1,56 @@
+version: "3.9"
+
+x-postgres-healthcheck: &postgres-healthcheck
+  test: pg_isready -U postgres
+  interval: 10s
+  timeout: 5s
+  retries: 5
+
+services:
+  bff:
+    build:
+      context: ./bff
+      dockerfile: Dockerfile
+    depends_on:
+      main:
+        condition: service_healthy
+      content:
+        condition: service_healthy
+
+  main:
+    build:
+      context: ./main-backend
+      dockerfile: Dockerfile
+    depends_on:
+      main-postgres:
+        condition: service_healthy
+    environment:
+      PORT: 8000
+      PRISMA_DATABASE_URL: postgresql://admin:password@main-postgres:5432/test
+
+  main-postgres:
+    image: postgres:13.4
+    healthcheck: *postgres-healthcheck
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: test
+
+  content:
+    build:
+      context: ./content-backend
+      dockerfile: Dockerfile
+    depends_on:
+      content-postgres:
+        condition: service_healthy
+    environment:
+      PORT: 8000
+      PRISMA_DATABASE_URL: postgresql://admin:password@content-postgres:5432/test
+
+  content-postgres:
+    image: postgres:13.4
+    healthcheck: *postgres-healthcheck
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: test
