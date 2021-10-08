@@ -1,0 +1,9 @@
+[submodule "bff"]
+	path = bff
+	url = git@github.com:henken-club/bff.git
+[submodule "main-backend"]
+	path = main-backend
+	url = git@github.com:henken-club/main-backend.git
+[submodule "content-backend"]
+	path = content-backend
+	url = git@github.com:henken-club/content-backend.git
