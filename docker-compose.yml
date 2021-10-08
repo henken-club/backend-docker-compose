@@ -11,16 +11,33 @@ services:
     build:
       context: ./bff
       dockerfile: Dockerfile
+    networks:
+      - services
     depends_on:
       main:
         condition: service_healthy
       content:
         condition: service_healthy
+    environment:
+      PORT: 4000
+      JWKS_URI: $JWKS_URI
+      AUDIENCE: $AUDIENCE
+      ISSUER: $ISSUER
+      SERVICE_URL_MAIN: http://main:8000/graphql
+      SERVICE_URL_CONTENT: http://content:8000/graphql
 
   main:
     build:
       context: ./main-backend
       dockerfile: Dockerfile
+    networks:
+      - services
+      - main
+    healthcheck:
+      test: "curl localhost:8000/health"
+      interval: 5s
+      timeout: 5s
+      retries: 30
     depends_on:
       main-postgres:
         condition: service_healthy
@@ -31,6 +48,8 @@ services:
   main-postgres:
     image: postgres:13.4
     healthcheck: *postgres-healthcheck
+    networks:
+      - main
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: password
@@ -40,6 +59,14 @@ services:
     build:
       context: ./content-backend
       dockerfile: Dockerfile
+    networks:
+      - services
+      - content
+    healthcheck:
+      test: "curl localhost:8000/health"
+      interval: 5s
+      timeout: 5s
+      retries: 30
     depends_on:
       content-postgres:
         condition: service_healthy
@@ -50,7 +77,15 @@ services:
   content-postgres:
     image: postgres:13.4
     healthcheck: *postgres-healthcheck
+    networks:
+      - content
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: password
       POSTGRES_DB: test
+
+networks:
+  services:
+
+  main:
+  content:
