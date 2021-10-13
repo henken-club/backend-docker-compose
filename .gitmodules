@@ -7,3 +7,6 @@
 [submodule "content-backend"]
 	path = content-backend
 	url = git@github.com:henken-club/content-backend.git
+[submodule "search-backend"]
+	path = search-backend
+	url = git@github.com:henken-club/search-backend.git
