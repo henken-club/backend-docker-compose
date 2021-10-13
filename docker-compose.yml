@@ -28,6 +28,7 @@ services:
       ISSUER: $ISSUER
       SERVICE_URL_MAIN: http://main:8000/graphql
       SERVICE_URL_CONTENT: http://content:8000/graphql
+      SERVICE_URL_SERVICE: http://search:8000/graphql
 
   main:
     build:
@@ -87,8 +88,27 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: test
 
+  search:
+    build:
+      context: ./search-backend
+      dockerfile: Dockerfile
+    networks:
+      - services
+      - search
+    healthcheck:
+      test: "curl localhost:8000/health"
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    depends_on:
+      content-postgres:
+        condition: service_healthy
+    environment:
+      PORT: 8000
+
 networks:
   services:
 
   main:
   content:
+  search:
